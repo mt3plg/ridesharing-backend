@@ -3,11 +3,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { RidesModule } from './rides/rides.module';
+import { UsersModule } from './users/users.module';
 import { UsersModule } from './users/users.module';
 import { RidesModule } from './rides/rides.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AuthModule } from './auth/auth.module';
 import * as helmet from 'helmet';
 
 @Module({
