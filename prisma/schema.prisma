@@ -1,0 +1,94 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id                     Int            @id @default(autoincrement())
+    name                   String
+    email                  String         @unique
+    password               String
+    phone                  String?
+    role                   String         @default("passenger") // "driver" or "passenger"
+    avatar                 String?
+    rating                 Float          @default(0)
+    status                 String         @default("pending") // "pending", "active"
+    friends                User[]         @relation("Friends")
+    friendsOf              User[]         @relation("Friends")
+    createdAt              DateTime       @default(now())
+    updatedAt              DateTime       @updatedAt
+    trips                  Ride[]         @relation("UserTrips") // Поїздки, де користувач є водієм
+    reviews                Review[]       @relation("UserReviews")
+    authoredReviews        Review[]       @relation("AuthorReviews")
+    driverConversations    Conversation[] @relation("DriverConversations")
+    passengerConversations Conversation[] @relation("PassengerConversations")
+    messages               Message[]
+    ridesAsPassenger       Ride[]         @relation("RidePassengers") // Поїздки, де користувач є пасажиром
+
+    @@index([email]) // Індекс для швидкого пошуку за email
+}
+
+model Ride {
+    id             Int            @id @default(autoincrement())
+    startLocation  String
+    destination    String
+    distance       String?
+    date           DateTime
+    passengerCount Int
+    passengers     User[]         @relation("RidePassengers")
+    vehicleType    String
+    price          String?
+    status         String         @default("active") // "active", "completed", "cancelled", "available", "booked"
+    driverId       Int
+    driver         User           @relation("UserTrips", fields: [driverId], references: [id])
+    createdAt      DateTime       @default(now())
+    updatedAt      DateTime       @updatedAt
+    conversations  Conversation[] @relation("RideConversations")
+
+    @@index([status]) // Індекс для швидкого пошуку за статусом
+    @@index([driverId]) // Індекс для швидкого пошуку за driverId
+}
+
+model Review {
+    id        Int      @id @default(autoincrement())
+    rating    Int
+    comment   String
+    authorId  Int
+    author    User     @relation("AuthorReviews", fields: [authorId], references: [id])
+    userId    Int
+    user      User     @relation("UserReviews", fields: [userId], references: [id])
+    date      String
+    createdAt DateTime @default(now())
+
+    @@index([userId]) // Індекс для швидкого пошуку відгуків користувача
+}
+
+model Conversation {
+    id          Int       @id @default(autoincrement())
+    driverId    Int
+    driver      User      @relation("DriverConversations", fields: [driverId], references: [id])
+    passengerId Int
+    passenger   User      @relation("PassengerConversations", fields: [passengerId], references: [id])
+    rideId      Int
+    ride        Ride      @relation("RideConversations", fields: [rideId], references: [id])
+    messages    Message[]
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    @@index([driverId]) // Індекс для швидкого пошуку за driverId
+    @@index([passengerId]) // Індекс для швидкого пошуку за passengerId
+}
+
+model Message {
+    id             Int          @id @default(autoincrement())
+    content        String
+    senderId       Int
+    sender         User         @relation(fields: [senderId], references: [id])
+    conversationId Int
+    conversation   Conversation @relation(fields: [conversationId], references: [id])
+    createdAt      DateTime     @default(now())
+}
